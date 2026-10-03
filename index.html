@@ -1,20 +1,19 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <title>Random Groups &amp; Means</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-:root{--bg:#f7f6f2;--card:#fff;--ink:#1f2328;--mute:#667;--line:#ddd9cf;--a:#2a6fdb;--b:#d9622b;--ac:#e8f0fd;--bc:#fcece3;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181b;--card:#202226;--ink:#eceae4;--mute:#9a9a9a;--line:#34363b;--a:#6aa3ff;--b:#ff9a66;--ac:#1d2a40;--bc:#3a261b}}
-:root[data-theme="dark"]{--bg:#17181b;--card:#202226;--ink:#eceae4;--mute:#9a9a9a;--line:#34363b;--a:#6aa3ff;--b:#ff9a66;--ac:#1d2a40;--bc:#3a261b}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{--bg:#f7f6f2;--card:#fff;--ink:#1f2328;--mute:#667;--line:#ddd9cf;--a:#2a6fdb;--b:#d9622b;--ac:#e8f0fd;--bc:#fcece3}
+@media (prefers-color-scheme:dark){:root{--bg:#17181b;--card:#202226;--ink:#eceae4;--mute:#9a9a9a;--line:#34363b;--a:#6aa3ff;--b:#ff9a66;--ac:#1d2a40;--bc:#3a261b}}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 main{max-width:760px;margin:0 auto;padding:20px 16px 40px}
 h1{font-size:1.5rem;margin:0 0 4px}.sub{color:var(--mute);margin:0 0 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
 label{font-weight:600;display:block;margin-bottom:6px}
-textarea{width:100%;box-sizing:border-box;min-height:70px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea,input[type=text]{width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:70px}
 input[type=number]{width:70px;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
 button{font:inherit;font-weight:600;padding:10px 18px;border-radius:10px;border:0;background:var(--a);color:#fff;cursor:pointer}
 button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
@@ -26,11 +25,12 @@ button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .g h2{margin:0 0 6px;font-size:1.05rem}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
 .chip{min-width:26px;text-align:center;padding:2px 6px;border-radius:6px;background:var(--card);border:1px solid var(--line);font-weight:600}
-.mean{font-size:1.6rem;font-weight:700}
-.a .mean{color:var(--a)}.b .mean{color:var(--b)}
+.mean{font-size:1.6rem;font-weight:700}.a .mean{color:var(--a)}.b .mean{color:var(--b)}
 .diff{text-align:center;margin-top:12px;font-size:1.1rem}
-.tblwrap{overflow-x:auto}table{border-collapse:collapse;width:100%}
+.tblwrap{overflow-x:auto;max-height:240px;overflow-y:auto}table{border-collapse:collapse;width:100%}
 td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}
+details summary{cursor:pointer;font-weight:600}
+svg{width:100%;height:auto;display:block}
 </style>
 </head>
 <body>
@@ -42,33 +42,46 @@ td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}th:fi
 <label for="in">Class ratings (1–7), separated by spaces, commas, or new lines</label>
 <textarea id="in" placeholder="e.g. 5 3 7 4 6 2 ..."></textarea>
 <div class="row"><span id="info" class="note"></span>
-<span>Group 1 size: <input type="number" id="sz" min="1" step="1"></span></div>
+<span>John group size: <input type="number" id="sz" min="1" step="1"></span></div>
 <div id="err" class="err"></div>
-<div class="row" id="teacher" hidden="">
-<button class="alt" id="share">Share these ratings with the class</button>
-<span class="note" id="shareNote">Teacher only: everyone with the page open reloads with the ratings loaded.</span></div>
 </div>
+
+<details class="card" id="teacher">
+<summary>Teacher setup: make a link for students</summary>
+<p class="note">Paste the ratings above. Optionally add a Firebase Realtime Database URL so every student's result shows up in one class dotplot (leave blank to skip).</p>
+<label for="db">Firebase Realtime Database URL (optional)</label>
+<input type="text" id="db" placeholder="https://your-project-default-rtdb.firebaseio.com">
+<div class="row"><button id="mk">Create student link</button></div>
+<div class="row"><input type="text" id="link" readonly placeholder="Your student link will appear here"></div>
+<div class="note" id="mkNote"></div>
+</details>
 
 <div class="card">
 <div class="row" style="margin-top:0"><button id="go">Randomly divide!</button>
-<button class="alt" id="clear">Clear history</button></div>
+<button class="alt" id="clear">Clear my history</button></div>
 <div id="out" style="margin-top:14px"></div>
 </div>
 
-<div class="card" id="histcard" hidden="">
+<div class="card">
+<svg id="plot" viewBox="0 0 700 270" role="img" aria-label="Dot plot of differences in means"></svg>
+<div class="note" id="plotNote"></div>
+</div>
+
+<div class="card" id="histcard" hidden>
 <label>Your results so far</label>
-<div class="tblwrap"><table><thead><tr><th>#</th><th>Group 1 mean</th><th>Group 2 mean</th><th>Difference (1 − 2)</th></tr></thead><tbody id="hist"></tbody></table></div>
+<div class="tblwrap"><table><thead><tr><th>#</th><th>John mean</th><th>Jennifer mean</th><th>Difference (John − Jenn)</th></tr></thead><tbody id="hist"></tbody></table></div>
 </div>
 </main>
 <script>
-const PRISTINE='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
-const SAVED=/*D*/[7,4,5,7,3,1,1,3,3,7,6,3,5,7,6,6,7,3,1,3,7,6,5,4,2,7,3,3,6,6]/*E*/;
 const $=id=>document.getElementById(id);
-let vals=[],hist=[];
+const P=new URLSearchParams(location.hash.slice(1));
+const DB=(P.get('db')||'').replace(/\/+$/,''), SID=P.get('s')||'';
+const ENDPOINT=DB&&SID?DB+'/'+encodeURIComponent(SID)+'/diffs.json':'';
+let vals=[],hist=[],classDiffs=[];
+
 function parse(){
   const t=$('in').value.trim();
-  const toks=t?t.split(/[\s,;]+/).filter(Boolean):[];
-  const nums=toks.map(Number);
+  const nums=(t?t.split(/[\s,;]+/).filter(Boolean):[]).map(Number);
   const bad=nums.filter(x=>!Number.isFinite(x)||x<1||x>7);
   vals=nums.filter(x=>Number.isFinite(x)&&x>=1&&x<=7);
   $('err').textContent=bad.length?bad.length+' entr'+(bad.length>1?'ies':'y')+' ignored (not a number from 1 to 7).':'';
@@ -76,10 +89,9 @@ function parse(){
   const s=$('sz');s.max=Math.max(vals.length-1,1);
   if(!s.dataset.touched||+s.value>=vals.length)s.value=Math.floor(vals.length/2)||1;
 }
-function rnd(n){const a=new Uint32Array(1);const lim=Math.floor(4294967296/n)*n;let x;do{crypto.getRandomValues(a);x=a[0]}while(x>=lim);return x%n}
+function rnd(n){const a=new Uint32Array(1),lim=Math.floor(4294967296/n)*n;let x;do{crypto.getRandomValues(a);x=a[0]}while(x>=lim);return x%n}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
-const mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
-const f=x=>x.toFixed(2);
+const mean=a=>a.reduce((s,x)=>s+x,0)/a.length, f=x=>x.toFixed(2);
 function group(cls,name,a){
   return '<div class="g '+cls+'"><h2>'+name+' (n = '+a.length+')</h2><div class="chips">'+
   a.map(x=>'<span class="chip">'+x+'</span>').join('')+'</div><div>Mean</div><div class="mean">'+f(mean(a))+'</div></div>';
@@ -90,31 +102,70 @@ function go(){
   let k=Math.round(+$('sz').value);k=Math.min(Math.max(k,1),vals.length-1);$('sz').value=k;
   const sh=shuffle(vals),A=sh.slice(0,k).sort((x,y)=>x-y),B=sh.slice(k).sort((x,y)=>x-y);
   const d=mean(A)-mean(B);
-  $('out').innerHTML='<div class="groups">'+group('a','Group 1',A)+group('b','Group 2',B)+'</div><div class="diff">Difference in means (Group 1 − Group 2): <b>'+f(d)+'</b></div>';
+  $('out').innerHTML='<div class="groups">'+group('a','John',A)+group('b','Jennifer',B)+'</div><div class="diff">Difference in means (John − Jennifer): <b>'+f(d)+'</b></div>';
   hist.push([mean(A),mean(B),d]);drawHist();
+  if(ENDPOINT){
+    fetch(ENDPOINT,{method:'POST',body:JSON.stringify(Math.round(d*10000)/10000)}).then(poll).catch(()=>{});
+  }
+  drawPlot();
 }
 function drawHist(){
   $('histcard').hidden=!hist.length;
   $('hist').innerHTML=hist.map((h,i)=>'<tr><td>'+(i+1)+'</td><td>'+f(h[0])+'</td><td>'+f(h[1])+'</td><td>'+f(h[2])+'</td></tr>').reverse().join('');
 }
+
+function drawPlot(){
+  const svg=$('plot'),W=700,H=270,m={l:30,r:30,t:44,b:50};
+  const data=ENDPOINT&&classDiffs.length?classDiffs:hist.map(h=>h[2]);
+  const ink='style="fill:var(--ink)"',mut='style="fill:var(--mute)"';
+  let s='<text x="'+W/2+'" y="24" text-anchor="middle" font-size="18" font-weight="700" '+ink+'>Difference of Means (John - Jenn)</text>';
+  const ext=Math.max(1,Math.ceil(Math.max(0,...data.map(Math.abs))*2)/2);
+  const pw=W-m.l-m.r,x=v=>m.l+(v+ext)/(2*ext)*pw,y0=H-m.b;
+  s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+y0+'" y2="'+y0+'" style="stroke:var(--ink)" stroke-width="1.5"/>';
+  const step=ext<=2?0.5:1;
+  for(let v=-ext;v<=ext+1e-9;v+=step){
+    s+='<line x1="'+x(v)+'" x2="'+x(v)+'" y1="'+y0+'" y2="'+(y0+5)+'" style="stroke:var(--ink)"/>'+
+       '<text x="'+x(v)+'" y="'+(y0+20)+'" text-anchor="middle" font-size="12" '+ink+'>'+(Math.round(v*10)/10)+'</text>';
+  }
+  s+='<text x="'+W/2+'" y="'+(H-8)+'" text-anchor="middle" font-size="13" '+mut+'>Difference in means (John − Jenn)</text>';
+  if(data.length){
+    const bw=0.1,bins={};
+    data.forEach(d=>{const k=Math.round(d/bw);bins[k]=(bins[k]||0)+1});
+    const maxS=Math.max(...Object.values(bins));
+    const rr=Math.min(8,(y0-m.t-4)/(2*maxS),(x(bw)-x(0))/2);
+    for(const k in bins)for(let i=0;i<bins[k];i++)
+      s+='<circle cx="'+x(k*bw)+'" cy="'+(y0-rr-1-i*2*rr)+'" r="'+Math.max(1.2,rr*0.92)+'" style="fill:var(--a)"/>';
+  }else s+='<text x="'+W/2+'" y="130" text-anchor="middle" font-size="14" '+mut+'>Click “Randomly divide!” to add dots.</text>';
+  svg.innerHTML=s;
+  $('plotNote').textContent=ENDPOINT?(classDiffs.length?'Class dotplot: '+classDiffs.length+' differences from all students (updates every few seconds).':'Waiting for class results…'):'Showing your own results. (A class dotplot needs the optional Firebase link.)';
+}
+async function poll(){
+  if(!ENDPOINT)return;
+  try{
+    const r=await fetch(ENDPOINT),j=await r.json();
+    classDiffs=j?Object.values(j).filter(Number.isFinite):[];
+  }catch(e){}
+  drawPlot();
+}
+
+$('mk').addEventListener('click',()=>{
+  parse();
+  if(vals.length<2){$('mkNote').textContent='Enter the ratings in the box above first.';return}
+  const db=$('db').value.trim().replace(/\/+$/,'');
+  const q=new URLSearchParams();q.set('r',vals.join(','));
+  if(db){q.set('db',db);q.set('s',Math.random().toString(36).slice(2,8))}
+  const url=location.href.split('#')[0]+'#'+q.toString();
+  $('link').value=url;$('link').select();
+  try{navigator.clipboard.writeText(url);$('mkNote').textContent='Link created and copied. Each time you create a link it starts a fresh class dotplot.'}catch(e){$('mkNote').textContent='Link created: copy it from the box.'}
+});
 $('in').addEventListener('input',parse);
 $('sz').addEventListener('input',()=>{$('sz').dataset.touched=1});
 $('go').addEventListener('click',go);
-$('clear').addEventListener('click',()=>{hist=[];drawHist();$('out').innerHTML=''});
-if(SAVED.length)$('in').value=SAVED.join(' ');
-parse();
+$('clear').addEventListener('click',()=>{hist=[];drawHist();$('out').innerHTML='';drawPlot()});
 
-(async()=>{
-  try{
-    const user=await claude.use('user'),art=await claude.use('artifact');
-    if(!art||!(user&&user.isOwner()))return;
-    $('teacher').hidden=false;
-    $('share').addEventListener('click',async()=>{
-      parse();
-      if(vals.length<2){$('shareNote').textContent='Enter ratings first.';return}
-      const html=PRISTINE.replace(/\/\*D\*\/[^]*?\/\*E\*\//,()=>'/*D*/'+JSON.stringify(vals)+'/*E*/');
-      try{await art.publish(html)}catch(e){$('shareNote').textContent='Could not publish: '+(e&&e.code||'error')}
-    });
-  }catch(e){}
-})();
-</script></body></html>
+if(P.get('r')){$('in').value=P.get('r').split(',').join(' ');$('teacher').hidden=true}
+parse();drawPlot();
+if(ENDPOINT){poll();setInterval(poll,3000)}
+</script>
+</body>
+</html>
