@@ -92,6 +92,7 @@ svg{width:100%;height:auto;display:block}
 <div class="card">
 <b>What happened</b>
 <p>Every student read the same resume. The only difference was the name at the top. Each student was randomly assigned to read either <b>John Miller</b> or <b>Jennifer Miller</b>.</p>
+<div id="scores" class="groups" style="margin:12px 0"></div>
 <div id="rev" class="tblwrap"></div>
 </div>
 <div class="card">
@@ -181,6 +182,8 @@ async function enterAnalysis(){
   const a=Object.values(await get('/ratings.json')||{}).filter(x=>x.r>=1&&x.r<=7);
   const jr=a.filter(x=>x.g==='J').map(x=>x.r),fr=a.filter(x=>x.g==='F').map(x=>x.r);
   OBS=jr.length&&fr.length?mean(jr)-mean(fr):null;
+  const sc=(cls,nm,x)=>'<div class="g '+cls+'"><h2>'+nm+' (n = '+x.length+')</h2><div class="chips">'+(x.length?x.slice().sort((p,q)=>p-q).map(v=>'<span class="chip">'+v+'</span>').join(''):'–')+'</div></div>';
+  $('scores').innerHTML=sc('a','John Miller',jr)+sc('b','Jennifer Miller',fr);
   $('rev').innerHTML='<table><thead><tr><th>Resume</th><th>n</th><th>Mean rating</th></tr></thead><tbody><tr><td>John Miller</td><td>'+jr.length+'</td><td>'+(jr.length?f(mean(jr)):'–')+'</td></tr><tr><td>Jennifer Miller</td><td>'+fr.length+'</td><td>'+(fr.length?f(mean(fr)):'–')+'</td></tr><tr><td><b>Observed difference (John − Jenn)</b></td><td></td><td><b>'+(OBS===null?'–':f(OBS))+'</b></td></tr></tbody></table>';
   $('ttl').textContent='Random Groups & Means';document.title='Random Groups & Means';
   $('in').value=a.map(x=>x.r).join(' ');parse();
